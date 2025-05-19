@@ -14,7 +14,6 @@ def check_os_update():
 
 def check_windows_update():
     try:
-        # Run PowerShell command to get pending updates count
         cmd = ['powershell', '-Command', '(New-Object -ComObject Microsoft.Update.Session).CreateUpdateSearcher().Search("IsInstalled=0 and Type=\'Software\'").Updates.Count']
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True).strip()
         pending = int(output)
@@ -41,7 +40,6 @@ def check_macos_update():
 
 def check_linux_update():
     try:
-        # Attempt Debian-based check
         output = subprocess.check_output(
             ["apt-get", "-s", "upgrade"],
             stderr=subprocess.STDOUT,

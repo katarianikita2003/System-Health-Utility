@@ -6,7 +6,6 @@ const port = 8000;
 app.use(cors());
 
 app.get('/report', (req, res) => {
-  // Mock system health data - customize as needed
   const report = {
     timestamp: Date.now(),
     "DISK ENCRYPTION": {

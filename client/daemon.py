@@ -4,7 +4,7 @@ import requests
 import os
 from .main import run_all_checks
 
-CHECK_INTERVAL = 900  # 15 minutes (900 seconds)
+CHECK_INTERVAL = 900 
 LAST_STATE_FILE = "client/last_check.json"
 API_ENDPOINT = "http://localhost:8000/report"
 

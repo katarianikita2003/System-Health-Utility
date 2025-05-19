@@ -8,10 +8,8 @@ import os
 app = FastAPI()
 from datetime import datetime
 
-# Static files for dashboard UI
 app.mount("/dashboard", StaticFiles(directory="client/templates", html=True), name="dashboard")
 
-# In-memory store for latest report
 latest_report = {
     "disk_encryption": {
         "status": False,
@@ -31,7 +29,6 @@ latest_report = {
     }
 }
 
-# CORS settings
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -52,6 +49,6 @@ async def get_report():
     report_copy['timestamp'] = datetime.utcnow().isoformat() + "Z"
     return report_copy
 
-@app.get("/")  # Optional: to open dashboard at root
+@app.get("/") 
 def get_dashboard():
     return FileResponse("client/templates/dashboard.html")

@@ -72,7 +72,6 @@
 
         function formatReportText(data, filter = "all") {
             let lines = [];
-            // Header and timestamp
             const timestamp = data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleString();
             lines.push("🔍 System Health Report");
             lines.push(`Last updated: ${timestamp}`);
@@ -81,7 +80,6 @@
             for (const [key, val] of Object.entries(data)) {
                 if (key === 'timestamp') continue;
 
-                // Determine status string and filter out if needed
                 let statusStr = "";
                 let isOk = false;
                 if (val && typeof val === "object" && "status" in val) {
@@ -92,20 +90,16 @@
                     isOk = val === true;
                     statusStr = isOk ? "✔️ OK" : "❌ FAIL";
                 } else {
-                    // For non-object or no status, show value directly
                     statusStr = val;
                 }
 
                 if (filter === "ok" && !isOk) continue;
                 if (filter === "fail" && isOk) continue;
 
-                // Add check title
                 lines.push(key.replace(/_/g, ' ').toUpperCase());
 
-                // Add status line (only if we got status)
                 if (statusStr) lines.push(statusStr);
 
-                // Add details if available
                 if (val && typeof val === "object" && val.details) {
                     lines.push(val.details);
                 }
@@ -121,7 +115,6 @@
                 const data = await res.json();
                 latestReportData = data;
 
-                // Update last updated text
                 const lastUpdated = document.getElementById("lastUpdated");
                 if (data.timestamp) {
                     const updateTime = new Date(data.timestamp);

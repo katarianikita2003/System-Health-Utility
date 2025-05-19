@@ -15,7 +15,6 @@ def check_inactivity_sleep():
 
 def check_windows_sleep():
     try:
-        # Get current active power scheme GUID
         scheme_output = subprocess.check_output(['powercfg', '/getactivescheme'], text=True)
         match = re.search(r'GUID: ([\w-]+)', scheme_output)
         if not match:
@@ -23,13 +22,8 @@ def check_windows_sleep():
 
         scheme_guid = match.group(1)
 
-        # Get detailed settings for this scheme
         settings_output = subprocess.check_output(['powercfg', '/q', scheme_guid], text=True)
 
-        # Find the sleep timeout setting for AC power
-        # Sleep idle timeout GUID is 29f6c1db-86da-48c5-9fdb-f2b67b1f44da
-        # It appears with sub-settings for AC and DC, e.g.:
-        # Current AC Power Setting Index: 600 (seconds)
         sleep_timeout_pattern = re.compile(
             r'Power Setting GUID: 29f6c1db-86da-48c5-9fdb-f2b67b1f44da.*?Current AC Power Setting Index: (\d+)',
             re.DOTALL | re.IGNORECASE
@@ -48,7 +42,6 @@ def check_windows_sleep():
 def check_macos_sleep():
     try:
         output = subprocess.check_output(['pmset', '-g'], text=True)
-        # Find sleep timer, e.g. 'sleep 10 (minutes)'
         match = re.search(r'sleep\s+(\d+)', output)
         if match:
             minutes = int(match.group(1))
@@ -60,10 +53,8 @@ def check_macos_sleep():
         return {"status": False, "details": f"Error checking sleep timeout: {e}"}
 
 def check_linux_sleep():
-    # This is complex on Linux; for simplicity, check screensaver timeout
     try:
         output = subprocess.check_output(['gsettings', 'get', 'org.gnome.desktop.session', 'idle-delay'], text=True).strip()
-        # idle-delay is in seconds
         seconds = int(output)
         minutes = seconds // 60
         status = minutes <= 10
