@@ -1,0 +1,20 @@
+{
+  "platform": "Windows",
+  "antivirus": {
+    "status": true,
+    "details": "displayName      productState\n-----------      ------------\nWindows Defender       397568"
+  },
+  "disk_encryption": {
+    "status": false,
+    "details": "BitLocker not fully encrypted or disabled"
+  },
+  "os_update": {
+    "status": false,
+    "details": "1 pending update(s)"
+  },
+  "inactivity_sleep": {
+    "status": true,
+    "details": "Sleep timeout set to 0 minutes"
+  },
+  "timestamp": 1747688954.2817569
+}

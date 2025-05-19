@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>System Health Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 30px;
+            background: #e8f0fe;
+            color: #222;
+        }
+
+        h1 {
+            color: #0a3d62;
+            margin-bottom: 10px;
+        }
+
+        .last-updated {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .report {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 1rem;
+            color: #222;
+        }
+
+        button, select {
+            margin: 15px auto;
+            display: block;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #aaa;
+            cursor: pointer;
+        }
+
+        button:hover, select:hover {
+            background-color: #d6e0fc;
+            border-color: #4a90e2;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 System Health Report</h1>
+    <div class="last-updated" id="lastUpdated">Loading latest report...</div>
+
+    <button id="downloadTxtBtn">Download Report as Text</button>
+    <select id="statusFilter">
+        <option value="all">Show All</option>
+        <option value="ok">Only OK</option>
+        <option value="fail">Only Fail</option>
+    </select>
+
+    <pre class="report" id="reportContainer">Loading...</pre>
+
+    <script>
+        let latestReportData = {};
+
+        function formatReportText(data, filter = "all") {
+            let lines = [];
+            // Header and timestamp
+            const timestamp = data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleString();
+            lines.push("🔍 System Health Report");
+            lines.push(`Last updated: ${timestamp}`);
+            lines.push("");
+
+            for (const [key, val] of Object.entries(data)) {
+                if (key === 'timestamp') continue;
+
+                // Determine status string and filter out if needed
+                let statusStr = "";
+                let isOk = false;
+                if (val && typeof val === "object" && "status" in val) {
+                    isOk = val.status === true;
+                    if (isOk) statusStr = "✔️ OK";
+                    else statusStr = "❌ FAIL";
+                } else if (typeof val === "boolean") {
+                    isOk = val === true;
+                    statusStr = isOk ? "✔️ OK" : "❌ FAIL";
+                } else {
+                    // For non-object or no status, show value directly
+                    statusStr = val;
+                }
+
+                if (filter === "ok" && !isOk) continue;
+                if (filter === "fail" && isOk) continue;
+
+                // Add check title
+                lines.push(key.replace(/_/g, ' ').toUpperCase());
+
+                // Add status line (only if we got status)
+                if (statusStr) lines.push(statusStr);
+
+                // Add details if available
+                if (val && typeof val === "object" && val.details) {
+                    lines.push(val.details);
+                }
+
+                lines.push(""); // empty line after each check
+            }
+            return lines.join("\n");
+        }
+
+        async function fetchReport() {
+            try {
+                const res = await fetch("http://localhost:8000/report");
+                const data = await res.json();
+                latestReportData = data;
+
+                // Update last updated text
+                const lastUpdated = document.getElementById("lastUpdated");
+                if (data.timestamp) {
+                    const updateTime = new Date(data.timestamp);
+                    lastUpdated.textContent = `Last updated: ${updateTime.toLocaleString()}`;
+                } else {
+                    lastUpdated.textContent = "";
+                }
+
+                // Show all by default or current filter
+                const filter = document.getElementById("statusFilter").value;
+                document.getElementById("reportContainer").textContent = formatReportText(data, filter);
+
+            } catch (error) {
+                document.getElementById("reportContainer").textContent = "Failed to load report. Please try again later.";
+                document.getElementById("lastUpdated").textContent = "";
+                console.error("Fetch report error:", error);
+            }
+        }
+
+        // Initial fetch and refresh every 10 seconds
+        fetchReport();
+        setInterval(fetchReport, 10000);
+
+        // Filter change event
+        document.getElementById("statusFilter").addEventListener("change", () => {
+            const filter = document.getElementById("statusFilter").value;
+            document.getElementById("reportContainer").textContent = formatReportText(latestReportData, filter);
+        });
+
+        // Download report as text file
+        document.getElementById('downloadTxtBtn').addEventListener('click', () => {
+            const filter = document.getElementById("statusFilter").value;
+            const text = formatReportText(latestReportData, filter);
+            const blob = new Blob([text], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'system_health_report.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+
+</html>
